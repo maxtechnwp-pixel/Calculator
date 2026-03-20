@@ -3,28 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIR Dual Calculator - All Modes</title>
+    <title>BIR Tax Calculator</title>
     <style>
         body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%; max-width: 1200px; }
-        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 550px; flex: 1; min-width: 360px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%; max-width: 600px; }
+        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; }
         
         h2 { text-align: center; color: #1a73e8; margin-bottom: 5px; font-size: 1.4rem; }
         .sub-title { text-align: center; color: #666; margin-bottom: 15px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; }
 
         .mode-switch { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 20px; background: #eee; padding: 5px; border-radius: 10px; }
-        .mode-btn { padding: 8px 2px; cursor: pointer; border: none; background: none; font-weight: bold; border-radius: 7px; font-size: 0.65rem; transition: 0.3s; }
+        .mode-btn { padding: 10px 2px; cursor: pointer; border: none; background: none; font-weight: bold; border-radius: 7px; font-size: 0.7rem; transition: 0.3s; }
         .mode-btn.active { background: #1a73e8; color: white; }
 
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1.1rem; }
 
-        .res-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .res-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 1rem; }
         .minus { color: #d93025; font-weight: bold; }
-        .plus { color: #1a73e8; font-weight: bold; }
         .hidden { display: none; }
-        .total-row { border-top: 2px solid #333; margin-top: 10px; font-weight: bold; font-size: 1.2rem; color: #1e8e3e; background: #eef7ee; padding: 12px; border-radius: 5px; }
-        .info-text { font-size: 0.75rem; color: #777; font-style: italic; margin-top: 10px; }
+        .total-row { border-top: 2px solid #333; margin-top: 10px; font-weight: bold; font-size: 1.3rem; color: #1e8e3e; background: #eef7ee; padding: 15px; border-radius: 5px; }
+        .info-text { font-size: 0.8rem; color: #777; font-style: italic; margin-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
@@ -34,106 +33,57 @@
 <div class="container">
     
     <div class="box">
-        <h2>Calculator A</h2>
-        <p class="sub-title">SRP + 30% Markup</p>
+        <h2>Tax Computation</h2>
+        <p class="sub-title">Direct Amount Calculation</p>
 
         <div class="mode-switch">
-            <button id="btnA-1" class="mode-btn active" onclick="setMode('A', '1-ONLY')">1% ONLY</button>
-            <button id="btnA-Non" class="mode-btn" onclick="setMode('A', 'NON-VAT')">NON-VAT (1+3%)</button>
-            <button id="btnA-Vat" class="mode-btn" onclick="setMode('A', 'VAT')">VAT (1+5%)</button>
+            <button id="btn-1" class="mode-btn active" onclick="setMode('1-ONLY')">1% ONLY</button>
+            <button id="btn-Non" class="mode-btn" onclick="setMode('NON-VAT')">NON-VAT (1+3%)</button>
+            <button id="btn-Vat" class="mode-btn" onclick="setMode('VAT')">VAT (1+5%)</button>
         </div>
 
-        <label>Input SRP:</label>
-        <input type="number" id="inputA" placeholder="0.00" oninput="calcA()">
+        <label>Input Gross Amount:</label>
+        <input type="number" id="inputAmount" placeholder="0.00" oninput="calculate()">
 
         <div class="res-row">
-            <span>Original SRP:</span>
-            <span id="outSrpA">₱0.00</span>
-        </div>
-        <div class="res-row plus">
-            <span>+ 30% Markup:</span>
-            <span id="outMarkupA">₱0.00</span>
-        </div>
-        <div class="res-row" style="font-weight: bold; background: #f9f9f9;">
-            <span>GROSS SELLING:</span>
-            <span id="outGrossA">₱0.00</span>
+            <span>Gross Amount:</span>
+            <span id="outGross">₱0.00</span>
         </div>
         
-        <div class="res-row minus" id="rowA1">
-            <span id="labA1">Less: 1% EWT:</span>
-            <span id="taxA1">-₱0.00</span>
+        <div class="res-row minus" id="row1">
+            <span id="lab1">Less: 1% EWT:</span>
+            <span id="tax1">-₱0.00</span>
         </div>
-        <div class="res-row minus" id="rowA2">
-            <span id="labA2">Less: Tax:</span>
-            <span id="taxA2">-₱0.00</span>
+        <div class="res-row minus" id="row2">
+            <span id="lab2">Less: Tax:</span>
+            <span id="tax2">-₱0.00</span>
         </div>
 
         <div class="res-row total-row">
             <span>NET PAYABLE:</span>
-            <span id="outNetA">₱0.00</span>
+            <span id="outNet">₱0.00</span>
         </div>
-        <p class="info-text" id="infoA">* Bawas 1% sa Gross Amount</p>
-    </div>
-
-    <div class="box">
-        <h2>Calculator B</h2>
-        <p class="sub-title">Direct Price (No Markup)</p>
-
-        <div class="mode-switch">
-            <button id="btnB-1" class="mode-btn active" onclick="setMode('B', '1-ONLY')">1% ONLY</button>
-            <button id="btnB-Non" class="mode-btn" onclick="setMode('B', 'NON-VAT')">NON-VAT (1+3%)</button>
-            <button id="btnB-Vat" class="mode-btn" onclick="setMode('B', 'VAT')">VAT (1+5%)</button>
-        </div>
-
-        <label>Input Amount:</label>
-        <input type="number" id="inputB" placeholder="0.00" oninput="calcB()">
-
-        <div class="res-row">
-            <span>Input Amount (Gross):</span>
-            <span id="outSrpB">₱0.00</span>
-        </div>
-        
-        <div class="res-row minus" id="rowB1" style="margin-top: 20px;">
-            <span id="labB1">Less: 1% EWT:</span>
-            <span id="taxB1">-₱0.00</span>
-        </div>
-        <div class="res-row minus" id="rowB2">
-            <span id="labB2">Less: Tax:</span>
-            <span id="taxB2">-₱0.00</span>
-        </div>
-
-        <div class="res-row total-row">
-            <span>NET PAYABLE:</span>
-            <span id="outNetB">₱0.00</span>
-        </div>
-        <p class="info-text" id="infoB">* Bawas 1% sa Gross Amount</p>
+        <p class="info-text" id="infoText">* Bawas 1% sa Gross Amount</p>
     </div>
 
 </div>
 
 <script>
-    let modeA = '1-ONLY';
-    let modeB = '1-ONLY';
+    let currentMode = '1-ONLY';
 
-    function setMode(box, m) {
-        if(box === 'A') {
-            modeA = m;
-            updateButtons('A', m);
-            calcA();
-        } else {
-            modeB = m;
-            updateButtons('B', m);
-            calcB();
-        }
+    function setMode(m) {
+        currentMode = m;
+        updateUI(m);
+        calculate();
     }
 
-    function updateButtons(box, m) {
-        const btn1 = document.getElementById('btn' + box + '-1');
-        const btnNon = document.getElementById('btn' + box + '-Non');
-        const btnVat = document.getElementById('btn' + box + '-Vat');
-        const row2 = document.getElementById('row' + box + '2');
-        const lab2 = document.getElementById('lab' + box + '2');
-        const info = document.getElementById('info' + box);
+    function updateUI(m) {
+        const btn1 = document.getElementById('btn-1');
+        const btnNon = document.getElementById('btn-Non');
+        const btnVat = document.getElementById('btn-Vat');
+        const row2 = document.getElementById('row2');
+        const lab2 = document.getElementById('lab2');
+        const info = document.getElementById('infoText');
 
         btn1.className = (m === '1-ONLY') ? 'mode-btn active' : 'mode-btn';
         btnNon.className = (m === 'NON-VAT') ? 'mode-btn active' : 'mode-btn';
@@ -153,50 +103,25 @@
         }
     }
 
-    function calcA() {
-        const srp = parseFloat(document.getElementById('inputA').value) || 0;
-        const markup = srp * 0.30;
-        const gross = srp + markup;
+    function calculate() {
+        const amount = parseFloat(document.getElementById('inputAmount').value) || 0;
         let t1 = 0, t2 = 0;
 
-        if (modeA === 'VAT') {
-            let netOfVat = gross / 1.12;
+        if (currentMode === 'VAT') {
+            let netOfVat = amount / 1.12;
             t1 = netOfVat * 0.01;
             t2 = netOfVat * 0.05;
-        } else if (modeA === 'NON-VAT') {
-            t1 = gross * 0.01;
-            t2 = gross * 0.03;
+        } else if (currentMode === 'NON-VAT') {
+            t1 = amount * 0.01;
+            t2 = amount * 0.03;
         } else {
-            t1 = gross * 0.01;
+            t1 = amount * 0.01;
         }
 
-        document.getElementById('outSrpA').innerText = formatPera(srp);
-        document.getElementById('outMarkupA').innerText = formatPera(markup);
-        document.getElementById('outGrossA').innerText = formatPera(gross);
-        document.getElementById('taxA1').innerText = "-" + formatPera(t1);
-        document.getElementById('taxA2').innerText = "-" + formatPera(t2);
-        document.getElementById('outNetA').innerText = formatPera(gross - t1 - t2);
-    }
-
-    function calcB() {
-        const srp = parseFloat(document.getElementById('inputB').value) || 0;
-        let t1 = 0, t2 = 0;
-
-        if (modeB === 'VAT') {
-            let netOfVat = srp / 1.12;
-            t1 = netOfVat * 0.01;
-            t2 = netOfVat * 0.05;
-        } else if (modeB === 'NON-VAT') {
-            t1 = srp * 0.01;
-            t2 = srp * 0.03;
-        } else {
-            t1 = srp * 0.01;
-        }
-
-        document.getElementById('outSrpB').innerText = formatPera(srp);
-        document.getElementById('taxB1').innerText = "-" + formatPera(t1);
-        document.getElementById('taxB2').innerText = "-" + formatPera(t2);
-        document.getElementById('outNetB').innerText = formatPera(srp - t1 - t2);
+        document.getElementById('outGross').innerText = formatPera(amount);
+        document.getElementById('tax1').innerText = "-" + formatPera(t1);
+        document.getElementById('tax2').innerText = "-" + formatPera(t2);
+        document.getElementById('outNet').innerText = formatPera(amount - t1 - t2);
     }
 
     function formatPera(num) {
@@ -204,8 +129,7 @@
     }
 
     // Initial setup
-    updateButtons('A', '1-ONLY');
-    updateButtons('B', '1-ONLY');
+    updateUI('1-ONLY');
 </script>
 
 </body>
