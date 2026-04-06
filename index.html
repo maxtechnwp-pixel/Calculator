@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIR Tax Calculator</title>
+    <title>BIR Tax Calculator - Service & Goods</title>
     <style>
         body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%; max-width: 600px; }
@@ -12,18 +12,20 @@
         h2 { text-align: center; color: #1a73e8; margin-bottom: 5px; font-size: 1.4rem; }
         .sub-title { text-align: center; color: #666; margin-bottom: 15px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; }
 
-        .mode-switch { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 20px; background: #eee; padding: 5px; border-radius: 10px; }
-        .mode-btn { padding: 10px 2px; cursor: pointer; border: none; background: none; font-weight: bold; border-radius: 7px; font-size: 0.7rem; transition: 0.3s; }
+        .mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; background: #eee; padding: 8px; border-radius: 10px; }
+        .mode-btn { padding: 12px 5px; cursor: pointer; border: none; background: #fff; font-weight: bold; border-radius: 7px; font-size: 0.75rem; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .mode-btn.active { background: #1a73e8; color: white; }
 
         label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1.1rem; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1.1rem; text-align: right; }
 
         .res-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 1rem; }
         .minus { color: #d93025; font-weight: bold; }
         .hidden { display: none; }
         .total-row { border-top: 2px solid #333; margin-top: 10px; font-weight: bold; font-size: 1.3rem; color: #1e8e3e; background: #eef7ee; padding: 15px; border-radius: 5px; }
-        .info-text { font-size: 0.8rem; color: #777; font-style: italic; margin-top: 15px; text-align: center; }
+        .info-text { font-size: 0.8rem; color: #777; font-style: italic; margin-top: 15px; text-align: center; line-height: 1.4; }
+        
+        .section-label { font-size: 0.7rem; color: #555; grid-column: span 2; margin-top: 5px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -34,15 +36,23 @@
     
     <div class="box">
         <h2>Tax Computation</h2>
-        <p class="sub-title">Direct Amount Calculation</p>
+        <p class="sub-title">Service & Goods Invoice</p>
 
         <div class="mode-switch">
-            <button id="btn-1" class="mode-btn active" onclick="setMode('1-ONLY')">1% ONLY</button>
-            <button id="btn-Non" class="mode-btn" onclick="setMode('NON-VAT')">NON-VAT (1+3%)</button>
-            <button id="btn-Vat" class="mode-btn" onclick="setMode('VAT')">VAT (1+5%)</button>
+            <div class="section-label">Goods (Bilihin)</div>
+            <button id="btn-1-ONLY" class="mode-btn active" onclick="setMode('1-ONLY')">1% EWT ONLY</button>
+            <button id="btn-VAT-GOODS" class="mode-btn" onclick="setMode('VAT-GOODS')">1% + 5% (VAT)</button>
+            
+            <div class="section-label">Services (Serbisyo)</div>
+            <button id="btn-2-ONLY" class="mode-btn" onclick="setMode('2-ONLY')">2% EWT ONLY</button>
+            <button id="btn-VAT-SERVICE" class="mode-btn" onclick="setMode('VAT-SERVICE')">2% + 5% (VAT)</button>
+
+            <div class="section-label">Others</div>
+            <button id="btn-5-ONLY" class="mode-btn" onclick="setMode('5-ONLY')">5% EWT ONLY</button>
+            <button id="btn-NON-VAT" class="mode-btn" onclick="setMode('NON-VAT')">NON-VAT (1% + 3%)</button>
         </div>
 
-        <label>Input Gross Amount:</label>
+        <label>Input Gross Amount (Kasama VAT):</label>
         <input type="number" id="inputAmount" placeholder="0.00" oninput="calculate()">
 
         <div class="res-row">
@@ -51,7 +61,7 @@
         </div>
         
         <div class="res-row minus" id="row1">
-            <span id="lab1">Less: 1% EWT:</span>
+            <span id="lab1">Less: EWT:</span>
             <span id="tax1">-₱0.00</span>
         </div>
         <div class="res-row minus" id="row2">
@@ -73,33 +83,52 @@
 
     function setMode(m) {
         currentMode = m;
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Add active class to selected button
+        document.getElementById('btn-' + m).classList.add('active');
+        
         updateUI(m);
         calculate();
     }
 
     function updateUI(m) {
-        const btn1 = document.getElementById('btn-1');
-        const btnNon = document.getElementById('btn-Non');
-        const btnVat = document.getElementById('btn-Vat');
         const row2 = document.getElementById('row2');
+        const lab1 = document.getElementById('lab1');
         const lab2 = document.getElementById('lab2');
         const info = document.getElementById('infoText');
 
-        btn1.className = (m === '1-ONLY') ? 'mode-btn active' : 'mode-btn';
-        btnNon.className = (m === 'NON-VAT') ? 'mode-btn active' : 'mode-btn';
-        btnVat.className = (m === 'VAT') ? 'mode-btn active' : 'mode-btn';
+        // Reset display
+        row2.classList.remove('hidden');
 
         if (m === '1-ONLY') {
+            lab1.innerText = "Less: 1% EWT (Goods):";
             row2.classList.add('hidden');
-            info.innerText = "* Bawas 1% sa Gross Amount";
+            info.innerText = "* Para sa pagbili ng Goods (1% EWT applied to Gross)";
+        } else if (m === '2-ONLY') {
+            lab1.innerText = "Less: 2% EWT (Service):";
+            row2.classList.add('hidden');
+            info.innerText = "* Para sa Service Invoices (2% EWT applied to Gross)";
+        } else if (m === '5-ONLY') {
+            lab1.innerText = "Less: 5% EWT:";
+            row2.classList.add('hidden');
+            info.innerText = "* Direct 5% EWT deduction based on Gross";
         } else if (m === 'NON-VAT') {
-            row2.classList.remove('hidden');
+            lab1.innerText = "Less: 1% EWT:";
             lab2.innerText = "Less: 3% Percentage Tax:";
-            info.innerText = "* Bawas 1% + 3% sa Gross Amount";
-        } else {
-            row2.classList.remove('hidden');
+            info.innerText = "* Para sa Non-VAT registered suppliers (1% + 3%)";
+        } else if (m === 'VAT-GOODS') {
+            lab1.innerText = "Less: 1% EWT:";
             lab2.innerText = "Less: 5% Final VAT:";
-            info.innerText = "* Bawas 1% + 5% based sa Net of 12% VAT";
+            info.innerText = "* Para sa VAT Goods: Net of 12% VAT x (1% + 5%)";
+        } else if (m === 'VAT-SERVICE') {
+            lab1.innerText = "Less: 2% EWT:";
+            lab2.innerText = "Less: 5% Final VAT:";
+            info.innerText = "* Para sa VAT Services: Net of 12% VAT x (2% + 5%)";
         }
     }
 
@@ -107,15 +136,30 @@
         const amount = parseFloat(document.getElementById('inputAmount').value) || 0;
         let t1 = 0, t2 = 0;
 
-        if (currentMode === 'VAT') {
-            let netOfVat = amount / 1.12;
-            t1 = netOfVat * 0.01;
-            t2 = netOfVat * 0.05;
-        } else if (currentMode === 'NON-VAT') {
-            t1 = amount * 0.01;
-            t2 = amount * 0.03;
-        } else {
-            t1 = amount * 0.01;
+        switch(currentMode) {
+            case '1-ONLY':
+                t1 = amount * 0.01;
+                break;
+            case '2-ONLY':
+                t1 = amount * 0.02;
+                break;
+            case '5-ONLY':
+                t1 = amount * 0.05;
+                break;
+            case 'NON-VAT':
+                t1 = amount * 0.01;
+                t2 = amount * 0.03;
+                break;
+            case 'VAT-GOODS':
+                let netGoods = amount / 1.12;
+                t1 = netGoods * 0.01;
+                t2 = netGoods * 0.05;
+                break;
+            case 'VAT-SERVICE':
+                let netServ = amount / 1.12;
+                t1 = netServ * 0.02;
+                t2 = netServ * 0.05;
+                break;
         }
 
         document.getElementById('outGross').innerText = formatPera(amount);
